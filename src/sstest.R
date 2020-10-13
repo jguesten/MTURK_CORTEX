@@ -1,3 +1,12 @@
+#### SSTEST ####
+
+### RUN SIMPLE AGE SLOPES FOR EACH DOMAIN ON LME MODEL ###
+### (MODIFIED FROM PACKAGE REGHELPER [Hughes, 2020]) ###
+
+# input: trialdata, subjectdata
+# output: subjectdata dataframe with added domain-specific performance measures
+
+
 sstest=function(model){
   call <- model@call
   mdata <- model@frame

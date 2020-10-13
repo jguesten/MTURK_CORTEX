@@ -1,8 +1,8 @@
 #### CALC_PERFORM ####
 
-### FUNCTION TO CALCULATE PERFORMANCE MEASURES ###
+### CALCULATE PERFORMANCE MEASURES ###
 # input: trialdata, subjectdata
-# output: subjectdata dataframe with added domain_specific performance measures
+# output: subjectdata dataframe with added domain-specific performance measures
 
 Calc_perform = function(trialdata, subjectdata) {
   subject_data = split(trialdata, trialdata$ID)
