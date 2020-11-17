@@ -14,7 +14,10 @@ require(lme4)
 require(emmeans)
 
 # custom functions
-source("funcs.R")
+source("src/calc_perform.R")
+source("src/numextract.R")
+source("src/preproc_data.R")
+source("src/sstest.R")
 
 
 #### IMPORT DATA ####
