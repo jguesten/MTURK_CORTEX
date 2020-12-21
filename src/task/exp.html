@@ -1,0 +1,1196 @@
+<!doctype html>
+<html>
+
+<head>
+	<title>jspsych + psiturk</title>
+	<script src="/static/lib/jquery-min.js" type="text/javascript"></script>
+	<script src="/static/lib/underscore-min.js" type="text/javascript"></script>
+	<script src="/static/lib/backbone-min.js" type="text/javascript"></script>
+
+	<script src="/static/js/jspsych/jspsych.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-text.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-call-function.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-single-stim.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-survey-multi-choice.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-instructions.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-survey-likert.js" type="text/javascript"></script>
+	<script src="/static/js/jspsych/plugins/jspsych-survey-text.js" type="text/javascript"></script>
+	
+
+	<script type="text/javascript">
+		// These fields provided by the psiTurk Server
+		var uniqueId = "{{ uniqueId }}"; // a unique string identifying the worker/task
+		var adServerLoc = "{{ adServerLoc }}"; // the location of your ad (so you can send user back at end of experiment)
+		var mode = "{{ mode }}"; // is this running live, sandbox, or in debug mode?
+	</script>
+
+	<!-- utils.js and psiturk.js provide the basic psiturk functionality -->
+	<script src="/static/js/utils.js" type="text/javascript"></script>
+	<script src="/static/js/psiturk.js" type="text/javascript"></script>
+
+	<link href="/static/css/jspsych.css" rel="stylesheet" type="text/css">
+
+	<div class='loader'>
+		<span class='letter'>L</span><span class='letter'>o</span><span class='letter'>a</span><span class='letter'>d</span><span class='letter'>i</span><span class='letter'>n</span><span class='letter'>g</span><span class='letter'>.</span><span class='letter'>.</span><span class='letter'>.</span>
+	</div>
+
+
+</head>
+
+<body>
+<div id='jspsych-target'></div>
+</body>
+<script>
+
+	/* load psiturk */
+	var psiturk = new PsiTurk(uniqueId, adServerLoc, mode);
+
+
+	var timeline = [];
+	var subject_age = prompt("How old are you?");
+	    // defining groups of questions that will go together.
+	    var page_1_questions = ["Your gender:", "Your handedness:"];
+	    // definiting two different response scales that can be used.
+	    var page_1_options = ["male","female"];
+	    var page_2_options = ["right-handed", "left-handed"];
+	    var multi_choice_block = {
+	        type: 'survey-multi-choice',
+	        questions: page_1_questions,
+	        options: [page_1_options, page_2_options],  // need one scale for every question on a page
+	        required: [true, true]   // set whether questions are required
+	        // horizontal: true  // centres questions and makes options display horizontally
+		};
+   
+	timeline.push(multi_choice_block);
+
+
+	// defining two different response scales that can be used.
+	var scale_1 = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"];
+	var scale_2 = ["yes", "no"];
+	var scale_3 = ["18 - 20","21 - 23","24 - 26","27 - 28","29 - 30","31 - 33","34 - 36", "> 37"];
+
+	var likert_ratings = {
+		type: 'survey-likert',
+		questions: ["<p>Congratulations, you are almost done!! Please just answer the questions below:</p><p><p/><p>How difficult did you find the task? (1='very easy' --- 15='very difficult')</p>", "Were all pictures displayed correctly during the task (regardless of the instructions)?", "How long did it take you to complete the entire task (in minutes)?"],
+		labels: [scale_1, scale_2, scale_3] // need one scale for every question on a page
+	};
+
+
+
+
+
+	//var mycond= psiturk.taskdata.get('condition');
+	//var mycount= psiturk.taskdata.get('counterbalance');
+	var mycond = 21;
+	var mycount = 5;
+
+	console.log(mycond);
+	console.log(mycount);
+	console.log(mode);
+	var path = "/static/images/";
+
+	var lure_objects_stimuli = [path+'Objects/lure_objects/o_059_1.jpg', path+'Objects/lure_objects/o_059_2.jpg', path+'Objects/lure_objects/o_362_1.jpg', path+'Objects/lure_objects/o_362_2.jpg', path+'Objects/lure_objects/o_533_1.jpg', path+'Objects/lure_objects/o_533_2.jpg', path+'Objects/lure_objects/o_684_1.jpg', path+'Objects/lure_objects/o_684_2.jpg'];
+	var lure_objects = [{'same': path +'Objects/lure_objects/o_059_1.jpg','similar': path +'Objects/lure_objects/o_059_2.jpg', 'sequence':1},{'same': path +'Objects/lure_objects/o_362_1.jpg','similar': path +'Objects/lure_objects/o_362_2.jpg', 'sequence':1},{'same': path +'Objects/lure_objects/o_533_1.jpg','similar': path +'Objects/lure_objects/o_533_2.jpg', 'sequence':1},{'same': path +'Objects/lure_objects/o_684_1.jpg','similar': path +'Objects/lure_objects/o_684_2.jpg', 'sequence':1}];
+	var temp_objects = [];
+
+
+
+
+	var item_sequence_pool_7 = [[0,0,0,0,0,1,1,1,1,0,1,1,0,1,0,0,0,1,1,1,0,0,1,0,1,1,0,0,0,0,1,1,1,1,0,0,1,0,1,0,1,1,0,0,0,1,0,1,0,0,1,1,0,1,1,1],[1,1,1,1,1,0,0,0,0,1,0,0,1,0,1,1,1,0,0,0,1,1,0,1,0,0,1,1,1,1,0,0,0,0,1,1,0,1,0,1,0,0,1,1,1,0,1,0,1,1,0,0,1,0,0,0],[0,0,1,0,1,0,1,0,0,0,1,1,1,1,1,1,0,1,1,1,1,0,0,0,0,1,1,0,0,0,0,0,0,0,1,1,0,1,1,1,0,0,0,0,1,0,0,1,1,1,1,0,0,1,1,1],[1,1,0,1,0,1,0,1,1,1,0,0,0,0,0,0,1,0,0,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,0,0,0,1,1,1,1,0,1,1,0,0,0,0,1,1,0,0,0]];
+	var item_sequence_pool_8 = [[1,0,0,1,0,0,0,1,0,1,1,1,1,1,0,1,1,0,0,1,0,1,1,0,0,0,1,0,1,0,0,0,1,1,0,1,1,0,1,0,0,0,0,0,1,1,0,1,0,0,0,0,1,1,1,1,0,1,1,1,0,1,1,0],[0,1,1,0,1,1,1,0,1,0,0,0,0,0,1,0,0,1,1,0,1,0,0,1,1,1,0,1,0,1,1,1,0,0,1,0,0,1,0,1,1,1,1,1,0,0,1,0,1,1,1,1,0,0,0,0,1,0,0,0,1,0,0,1],[0,0,0,1,0,1,0,0,1,0,0,0,1,0,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,1,1,1,0,0,0,0,1,0,1,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0],[1,1,1,0,1,0,1,1,0,1,1,1,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,0,0,0,0,1,1,1,1,0,1,0,1,1,0,1,1,1,0,1,1,1,1,0,1,1,1,1,0,0,1]];
+
+
+	var trial_sequence = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8];
+
+
+//console.log(trial_sequence.length);
+// 1172 paired scene
+
+	$.getScript('stimuli.js', function(){    //import stimulus sets
+
+
+	instruction_images= ["static/images/Objects/Instructions/o_018_1.jpg", "static/images/Objects/Instructions/o_018_2.jpg", "static/images/Objects/Instructions/o_020_1.jpg", "static/images/Objects/Instructions/o_020_2.jpg", "/static/images/Objects/Instructions/r_001_1.jpg", "/static/images/Objects/Instructions/r_001_2.jpg", "/static/images/Objects/Instructions/r_002_1.jpg", "/static/images/Objects/Instructions/r_002_2.jpg", "/static/images/Objects/Instructions/black_fixation_cross.png"];
+
+
+
+	//Define the sequence for the given condition
+	if (mycond === 0 || mycond === 1 || mycond === 2 || mycond === 3 || mycond === 4 || mycond === 5 || mycond === 10 || mycond === 11 || mycond === 12 || mycond === 13 || mycond === 14 || mycond === 15 || mycond === 20 || mycond === 21 || mycond === 22 || mycond === 23 || mycond === 24 || mycond === 25) {
+
+			if (mycount == 0 || mycount == 4){
+
+
+				object_sequence = item_sequence_pool_8[0];
+				scene_sequence = item_sequence_pool_7[0];
+				single_objects = single_objects[0];
+				single_scenes = single_scenes[0];
+				single_objects_stimuli = single_objects_stimuli[0];
+				single_scenes_stimuli = single_scenes_stimuli[0];
+
+			}
+
+			else if (mycount == 1 || mycount == 5) {
+				object_sequence = item_sequence_pool_8[1];
+				scene_sequence = item_sequence_pool_7[1];
+				single_objects = single_objects[0];
+				single_scenes = single_scenes[0];
+				single_objects_stimuli = single_objects_stimuli[0];
+				single_scenes_stimuli = single_scenes_stimuli[0];
+			}
+
+
+			else if	(mycount == 2 || mycount == 6) {
+
+				object_sequence = item_sequence_pool_8[2];
+				scene_sequence = item_sequence_pool_7[2];
+				single_objects = single_objects[1];
+				single_scenes = single_scenes[1];
+				single_objects_stimuli = single_objects_stimuli[1];
+				single_scenes_stimuli = single_scenes_stimuli[1];
+			}
+			else if	(mycount == 3 || mycount == 7) {
+
+				object_sequence = item_sequence_pool_8[3];
+				scene_sequence = item_sequence_pool_7[3];
+				single_objects = single_objects[1];
+				single_scenes = single_scenes[1];
+				single_objects_stimuli = single_objects_stimuli[1];
+				single_scenes_stimuli = single_scenes_stimuli[1];
+			}
+	}
+
+
+
+	else if (mycond === 6 || mycond === 16 || mycond === 26) {
+
+		if (mycount == 0 || mycount == 4) {
+
+			object_sequence = item_sequence_pool_7[0];
+			scene_sequence = item_sequence_pool_7[0];
+			single_objects = single_objects[0];
+			single_scenes = single_scenes[0];
+			single_objects_stimuli = single_objects_stimuli[0];
+			single_scenes_stimuli = single_scenes_stimuli[0];
+
+		}
+
+		else if(mycount == 1 || mycount == 5) {
+
+			object_sequence = item_sequence_pool_7[1];
+			scene_sequence = item_sequence_pool_7[1];
+			single_objects = single_objects[0];
+			single_scenes = single_scenes[0];
+			single_objects_stimuli = single_objects_stimuli[0];
+			single_scenes_stimuli = single_scenes_stimuli[0];
+
+		}
+
+		else if (mycount == 2 || mycount == 6) {
+
+			object_sequence = item_sequence_pool_7[2];
+			scene_sequence = item_sequence_pool_7[2];
+			single_objects = single_objects[1];
+			single_scenes = single_scenes[1];
+			single_objects_stimuli = single_objects_stimuli[1];
+			single_scenes_stimuli = single_scenes_stimuli[1];
+
+		}
+
+		else if (mycount == 3 || mycount == 7) {
+
+				object_sequence = item_sequence_pool_7[3];
+				scene_sequence = item_sequence_pool_7[3];
+				single_objects = single_objects[1];
+				single_scenes = single_scenes[1];
+				single_objects_stimuli = single_objects_stimuli[1];
+				single_scenes_stimuli = single_scenes_stimuli[1];
+
+		}
+
+		temp_objects = lure_objects;
+		trial_sequence.splice(0, 2);
+
+	}
+
+	else if (mycond === 7 || mycond === 8 || mycond === 9 || mycond === 17 || mycond === 18 || mycond === 19 || mycond === 27 || mycond === 28 || mycond === 29 ) {
+
+
+			if (mycount == 0 || mycount == 4){
+
+			object_sequence = item_sequence_pool_7[0];
+			scene_sequence = item_sequence_pool_8[0];
+			single_objects = single_objects[0];
+			single_scenes = single_scenes[0];
+			single_objects_stimuli = single_objects_stimuli[0];
+			single_scenes_stimuli = single_scenes_stimuli[0];
+			}
+
+			else if (mycount == 1 || mycount == 5) {
+
+			object_sequence = item_sequence_pool_7[1];
+			scene_sequence = item_sequence_pool_8[1];
+			single_objects = single_objects[0];
+			single_scenes = single_scenes[0];
+			single_objects_stimuli = single_objects_stimuli[0];
+			single_scenes_stimuli = single_scenes_stimuli[0];
+			}
+
+			else if (mycount == 2 || mycount == 6) {
+
+				object_sequence = item_sequence_pool_7[2];
+				scene_sequence = item_sequence_pool_8[2];
+				single_objects = single_objects[1];
+				single_scenes = single_scenes[1];
+				single_objects_stimuli = single_objects_stimuli[1];
+				single_scenes_stimuli = single_scenes_stimuli[1];
+			}
+
+			else if (mycount == 3 || mycount == 7) {
+
+				object_sequence = item_sequence_pool_7[3];
+				scene_sequence = item_sequence_pool_8[3];
+				single_objects = single_objects[1];
+				single_scenes = single_scenes[1];
+				single_objects_stimuli = single_objects_stimuli[1];
+				single_scenes_stimuli = single_scenes_stimuli[1];
+			}
+
+
+		temp_objects = lure_objects;
+
+		trial_sequence.push(5);
+
+
+
+	}
+
+
+			//create array of objects that adds sequence info to each object
+	var sequenced_objects = [];
+	for (var i = 0; i<object.length; i++) {
+		sequenced_objects[i] = object[i];
+		sequenced_objects[i]['sequence'] = object_sequence[i];
+	}
+
+
+
+	//loop through arrays temp_objects and single_objects, and add the contained objects to sequenced_objects
+	for(i=0; i < temp_objects.length; i++)
+	{sequenced_objects.push(temp_objects[i])}
+	for(i=0; i< single_objects.length; i++)
+	{sequenced_objects.push(single_objects[i])}
+
+
+	var sequenced_scenes = [];
+	for (var i = 0; i<scene.length; i++) {
+		sequenced_scenes[i] = scene[i];
+		sequenced_scenes[i]['sequence'] = scene_sequence[i];
+	}
+	for(i=0; i< single_scenes.length; i++)
+	{sequenced_scenes.push(single_scenes[i]);
+	}
+
+
+	/*var cnt = 0;
+
+	object.forEach(function(itm){
+		if(!itm.__proto__.__proto__){
+			cnt++;
+		}
+	});
+
+	console.log(cnt + "normal objects are there");
+	var cnt = 0;
+
+	scene.forEach(function(itm){
+		if(!itm.__proto__.__proto__){
+			cnt++;
+		}
+	});
+
+	console.log(cnt + "normal scenes are there");
+
+*/
+
+
+
+	//Create shuffled stimulus sequences
+	shuffled_object = jsPsych.randomization.shuffleNoRepeats(sequenced_objects);
+	shuffled_scene = jsPsych.randomization.shuffleNoRepeats(sequenced_scenes);
+
+
+
+
+
+function findIndex(array, value)
+	{
+		var indexes = [];
+		for (i = 0; i < array.length; i++) {
+			if (array[i]['sequence'] === value) {
+				indexes.push(i);
+			}
+
+		}
+		return indexes;
+	}
+
+
+
+	//group stimulus indices by condition
+	object_same_indices = findIndex(shuffled_object,0);
+	object_similar_indices = findIndex(shuffled_object,1);
+	scene_same_indices = findIndex(shuffled_scene,0);
+	scene_similar_indices = findIndex(shuffled_scene,1);
+
+	//console.log(object_same_indices);
+	//console.log(shuffled_object);
+
+	//create shuffled trial sequence
+	shuffled_trial_sequence= jsPsych.randomization.shuffleNoRepeats(trial_sequence);
+
+	/*
+	console.log(trial_sequence);
+	console.log(object_same_indices.length);
+	console.log(object_similar_indices.length);
+	console.log(scene_same_indices.length);
+	console.log(scene_similar_indices.length);
+
+	console.log(cnt + "normal scenes are there");
+*/
+
+	//define Instruction trials
+
+    var Instruction_trial_RT = {
+		type: 'instructions',
+		key_forward: 13,
+		key_backward: 8,
+		pages: ['Many thanks for your interest in our experiment. Before starting with the actual experiment, we will show you pictures with left or right arrow keys in quick succession. Please press the "left arrow" or "right arrow" keys on your keyboard, depending on which you see. Please push the correct arrow key as fast as possible. Press "Enter" to start.'
+		]
+	};
+
+	var Instruction_trial = {
+	    type: 'instructions',
+		key_forward: 13,
+		key_backward: 8,
+	    pages: ['<p>Let us now get to the actual experiment. Please read the instructions carefully. While going through them, use "Enter" to move to the next page, and "Backspace" to go back.</p><p>The task you will accomplish aims to target your memory for pictures. During the experiment, you will see many different pictures of objects and rooms presented in pairs.</p><p>You will be tested on whether you saw these same pictures before.', '<p>Sometimes, the exact same pictures will be shown again. In that case, please press the left arrow (&#8592).</p><p>Sometimes you will see a similar picture to the one presented before. In this case the object or room will have changed slightly, so the pictures whilst similar are not identical. When the pictures are new to you, please press the right arrow key (&#8594).<p> Note: the changes may be quite subtle, so please look at the pictures carefully.</p>',
+			'Let us take one example from the experiment. First you see a fixation cross that indicates the start of a new trial. Please be ready to look at the new pictures. <img class="center-image" src="/static/images/Objects/Instructions/black_fixation_cross.png">',
+			'After that, you will see a new picture, for instance an object such as a chair.<img class="center-image" src="/static/images/Objects/Instructions/o_018_1.jpg">', '<img class="center-image" src="/static/images/Objects/Instructions/o_020_2.jpg">You will then be presented with a second object, such as a rolling pin. In both cases look carefully at the pictures.','This was the first round of presentations -a presentation trial-, in which the images will be shown for a fixed amount of time.',
+			'Then follows a fixation cross to indicate a second trial -test trial-, in which you will need to give a response by pressing an arrow key.<img class="center-image" src="/static/images/Objects/Instructions/black_fixation_cross.png">',
+			'Here you see a very similar chair. However, this time its legs have a different shape. In this case, you have not seen this exact chair yet, so please press the <b>right arrow key (&#8594)</b>.</p> <img class="center-image" src="/static/images/Objects/Instructions/o_018_2.jpg">',
+			'As for the rolling pin, you see the exact same item that was presented before. It is <b>old</b>, therefore press <b>left arrow key (&#8592)</b>. The image will disappear as soon as you press the arrow key.<img class="center-image" src="/static/images/Objects/Instructions/o_020_2.jpg">', 'The next trial may involve rooms instead of objects, but the procedure is the same. Press <b>left (&#8592)</b> for <b>old</b>, and <b>right (&#8594)</b> for <b>new</b> pictures. Please keep in mind to always respond as correct and fast as possible.',
+			'Let us start with a little training session for you to get used to the task. Please press "Enter" to start the training.'
+
+	]
+	};
+	var Instruction_trial_2 = {
+		type: 'instructions',
+		key_forward: 13,
+		key_backward: 8,
+		pages: ['Now that you are familiar with the task, we can start with the experiment. Thanks again for participating and good luck! Press "ENTER" when you are ready to start the experiment.'
+		]
+	};
+
+
+
+	//define fixation trial
+	var fixation_intertrial = {
+		type: 'single-stim',
+		stimulus: '<font size="24">+</font>',
+		is_html: true,
+		timing_response: 1000, // how long to show the fixation for
+		choices: 'none', // don't allow any responses from the subject
+		timing_post_trial: 500,
+		on_finish: function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "fix_inter"});
+			jsPsych.data.addDataToLastTrial({answer_type: "nA"});
+		}
+	};
+
+	timeline.push(Instruction_trial_RT);
+
+
+
+	//reaction time experiment
+
+		var RT_right_arrow = {
+			type: 'single-stim',
+			stimulus: '<b><font size="24">&#8594</font></b>',
+			is_html: true,
+			timing_response: 1500,
+			response_ends_trial: false,
+			on_finish: function (trial_data) {
+				if (trial_data.key_press == 37) {
+					jsPsych.data.addDataToLastTrial({answer_type: "false"});
+				}
+				else if (trial_data.key_press == 39) {
+					jsPsych.data.addDataToLastTrial({answer_type: "correct"});
+				}
+			}
+		};
+
+		var RT_left_arrow = {
+			type: 'single-stim',
+			stimulus: '<b><font size="24">&#8592</font></b>',
+			is_html: true,
+			timing_response: 1500,
+			response_ends_trial: false,
+			on_finish: function (trial_data) {
+				if (trial_data.key_press == 37) {
+					jsPsych.data.addDataToLastTrial({answer_type: "correct"});
+				}
+				else if (trial_data.key_press == 39) {
+					jsPsych.data.addDataToLastTrial({answer_type: "false"});
+				}
+			}
+		};
+
+	var rt_array = [2,1,2,2,1,1,1,2,2,1,2,1];
+
+console.log(rt_array);
+	for (i=0; i < rt_array.length; i++){
+		if (rt_array[i] == 1) {
+			timeline.push(RT_right_arrow);
+		}
+		else if (rt_array[i] == 2) {
+			timeline.push(RT_left_arrow);
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+	//Training Experiment
+
+
+
+
+		timeline.push(Instruction_trial);
+
+
+	function objectPresentation_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = object_training[index]["same"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = false;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	function scenePresentation_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = scene_training[index]["same"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = false;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	function objectSame_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = object_training[index]["same"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = true;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	function objectSimilar_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = object_training[index]["similar"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = true;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	function sceneSame_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = scene_training[index]["same"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = true;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	function sceneSimilar_training(index) {
+		this.type = 'single-stim';
+		this.stimulus = scene_training[index]["similar"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.response_ends_trial = true;
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "training"});
+		}
+	}
+
+	if (mycond == 5 || mycond == 6 || mycond == 7 || mycond == 8 || mycond == 9){
+
+	object_training = [{'same': path + 'Objects/pairs/Kleine_Objekte/so_026_1.jpg','similar': path + 'Objects/pairs/Kleine_Objekte/so_026_2.jpg'},{'same': path + 'Objects/pairs/Kleine_Objekte/so_013_1.jpg','similar': path + 'Objects/pairs/Kleine_Objekte/so_013_2.jpg'},{'same': path + 'Objects/pairs/Grosse_Objekte/o_160_1.jpg', 'similar': path + 'Objects/pairs/Grosse_Objekte/o_160_2.jpg'},{'same': path + 'Objects/pairs/Grosse_Objekte/o_603_1.jpg','similar': path + 'Objects/pairs/Grosse_Objekte/o_603_2.jpg'}];
+	scene_training = [{'same': path + 'Scenes/pairs/r_268_1.jpg','similar': path + 'Scenes/pairs/r_268_2.jpg'},{'same': path + 'Scenes/pairs/r_627_1.jpg','similar': path + 'Scenes/pairs/r_627_2.jpg'},{'same': path + 'Scenes/pairs/r_394_1.jpg', 'similar': path + 'Scenes/pairs/r_394_2.jpg'},{'same': path + 'Scenes/pairs/r_185_1.jpg','similar': path + 'Scenes/pairs/r_185_2.jpg'}];
+}
+
+	else if (mycond == 0 || mycond == 1 || mycond == 2 || mycond == 3 || mycond == 4) {
+
+		object_training = [{
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_103_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_103_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_094_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_094_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_479_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_479_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_050_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_050_2.jpg'
+		}];
+		scene_training = [{
+			'same': path + 'Scenes/pairs/r_365_1.jpg',
+			'similar': path + 'Scenes/pairs/r_365_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_561_1.jpg',
+			'similar': path + 'Scenes/pairs/r_561_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_166_1.jpg',
+			'similar': path + 'Scenes/pairs/r_166_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_114_1.jpg',
+			'similar': path + 'Scenes/pairs/r_114_2.jpg'
+		}];
+	}
+
+	else if (mycond == 15 || mycond == 16 || mycond == 17 || mycond == 18 || mycond == 19) {
+
+		object_training = [{
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_015_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_015_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_127_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_127_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_638_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_638_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_118_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_118_2.jpg'
+		}];
+
+		scene_training = [{
+			'same': path + 'Scenes/pairs/r_205_1.jpg',
+			'similar': path + 'Scenes/pairs/r_205_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_042_1.jpg',
+			'similar': path + 'Scenes/pairs/r_042_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_038_1.jpg',
+			'similar': path + 'Scenes/pairs/r_038_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_515_1.jpg',
+			'similar': path + 'Scenes/pairs/r_515_2.jpg'
+		}];
+	}
+
+	else if (mycond == 10 || mycond == 11 || mycond == 12 || mycond == 13 || mycond == 14) {
+
+		object_training = [{
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_026_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_026_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_077_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_077_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_420_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_420_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_153_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_153_2.jpg'
+		}];
+
+		scene_training = [{
+			'same': path + 'Scenes/pairs/r_287_1.jpg',
+			'similar': path + 'Scenes/pairs/r_287_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_284_1.jpg',
+			'similar': path + 'Scenes/pairs/r_284_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_128_1.jpg',
+			'similar': path + 'Scenes/pairs/r_128_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_174_1.jpg',
+			'similar': path + 'Scenes/pairs/r_174_2.jpg'
+		}];
+	}
+
+	else if (mycond == 25 || mycond == 26 || mycond == 27 || mycond == 28 || mycond == 29) {
+
+		object_training = [{
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_008_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_008_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_013_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_013_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_491_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_491_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_005_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_005_2.jpg'
+		}];
+
+		scene_training = [{
+			'same': path + 'Scenes/pairs/r_054_1.jpg',
+			'similar': path + 'Scenes/pairs/r_054_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_500_1.jpg',
+			'similar': path + 'Scenes/pairs/r_500_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_618_1.jpg',
+			'similar': path + 'Scenes/pairs/r_618_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_109_1.jpg',
+			'similar': path + 'Scenes/pairs/r_109_2.jpg'
+		}];
+	}
+
+	else if (mycond == 20 || mycond == 21 || mycond == 22 || mycond == 23 || mycond == 24) {
+
+		object_training = [{
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_140_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_140_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Kleine_Objekte/so_100_1.jpg',
+			'similar': path + 'Objects/pairs/Kleine_Objekte/so_100_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_414_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_414_2.jpg'
+		}, {
+			'same': path + 'Objects/pairs/Grosse_Objekte/o_559_1.jpg',
+			'similar': path + 'Objects/pairs/Grosse_Objekte/o_559_2.jpg'
+		}];
+
+		scene_training = [{
+			'same': path + 'Scenes/pairs/r_646_1.jpg',
+			'similar': path + 'Scenes/pairs/r_646_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_219_1.jpg',
+			'similar': path + 'Scenes/pairs/r_219_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_361_1.jpg',
+			'similar': path + 'Scenes/pairs/r_361_2.jpg'
+		}, {
+			'same': path + 'Scenes/pairs/r_083_1.jpg',
+			'similar': path + 'Scenes/pairs/r_083_2.jpg'
+		}];
+	}
+
+	timeline.push(fixation_intertrial);
+	timeline.push(new objectPresentation_training(0));
+	timeline.push(new objectPresentation_training(1));
+	timeline.push(fixation_intertrial);
+	timeline.push(new objectSame_training(0));
+	timeline.push(new objectSame_training(1));
+
+	timeline.push(fixation_intertrial);
+	timeline.push(new scenePresentation_training(0));
+	timeline.push(new scenePresentation_training(1));
+	timeline.push(fixation_intertrial);
+	timeline.push(new sceneSame_training(0));
+	timeline.push(new sceneSimilar_training(1));
+
+	timeline.push(fixation_intertrial);
+	timeline.push(new scenePresentation_training(2));
+	timeline.push(new scenePresentation_training(3));
+	timeline.push(fixation_intertrial);
+	timeline.push(new sceneSimilar_training(2));
+	timeline.push(new sceneSimilar_training(3));
+
+	timeline.push(fixation_intertrial);
+	timeline.push(new objectPresentation_training(2));
+	timeline.push(new objectPresentation_training(3));
+	timeline.push(fixation_intertrial);
+	timeline.push(new objectSimilar_training(2));
+	timeline.push(new objectSame_training(3));
+
+
+
+
+	//Actual Experiment
+
+		// define pause trial
+		var pause_trial = {
+			type: 'single-stim',
+			stimulus: '<p>The experiment pauses for 1 minute and then continues. If you want to continue before, press "Enter".</p><p></p><p></p><p> Reminder: press  "&#8592"  for old, and  "&#8594"  for new items. </p>',
+			choices: [13],
+			is_html: true,
+			timing_response: 60000,
+			response_ends_trial: true
+		};
+
+
+
+	//define 2 Presentation trial types and 4 test trial types (object_same, object_scene, scene_same, scene_similar)
+
+		function objectPresentation(index) {
+			this.type = 'single-stim';
+			this.stimulus = shuffled_object[index]["same"];
+			this.timing_stim = 3000;
+			this.timing_response = 3000;
+			this.response_ends_trial = false;
+			this.on_finish = function (trial_data) {
+				jsPsych.data.addDataToLastTrial({trial_property: "presentation"});
+			}
+		}
+
+
+		function scenePresentation(index) {
+			this.type = 'single-stim';
+			this.stimulus = shuffled_scene[index]["same"];
+			this.timing_stim = 3000;
+			this.timing_response = 3000;
+			this.response_ends_trial = false;
+			this.on_finish = function (trial_data) {
+				jsPsych.data.addDataToLastTrial({trial_property: "presentation"});
+			}
+		}
+
+
+
+
+	function objectSame(index) {
+			this.type = 'single-stim';
+			this.stimulus = shuffled_object[index]["same"];
+			this.timing_stim = 3000;
+			this.timing_response = 3000;
+			this.choices= [37,39];
+			this.on_finish= function(trial_data) {
+				jsPsych.data.addDataToLastTrial({trial_property: "test"});
+
+					if (trial_data.key_press == 37) {
+						jsPsych.data.addDataToLastTrial({answer_type: "hit"});
+					}
+					else if (trial_data.key_press == 39) {
+						jsPsych.data.addDataToLastTrial({answer_type: "miss"});
+					}
+					else {
+						jsPsych.data.addDataToLastTrial({answer_type: "-"});
+					}
+
+				if (mycount == 0 || mycount == 1 || mycount == 2 || mycount == 3) {
+					jsPsych.data.addDataToLastTrial({test_version: "repeat_first"});
+				}
+				else if (mycount == 4 || mycount == 5 || mycount == 6 || mycount == 7) {
+					jsPsych.data.addDataToLastTrial({test_version: "lure_first"});
+				}
+			}
+
+	}
+
+
+
+
+	function objectSimilar(index) {
+		this.type = 'single-stim';
+		this.stimulus = shuffled_object[index]["similar"];
+		this.timing_stim = 3000;
+		this.timing_response = 3000;
+		this.choices = [37, 39];
+		this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "test"});
+
+			if (trial_data.key_press == 37) {
+				jsPsych.data.addDataToLastTrial({answer_type: "false_alarm"});
+			}
+			else if (trial_data.key_press == 39) {
+				jsPsych.data.addDataToLastTrial({answer_type: "correct_rejection"});
+			}
+			else {
+				jsPsych.data.addDataToLastTrial({answer_type: "-"});
+			}
+				if (mycount == 0 || mycount == 1 || mycount == 2 || mycount == 3) {
+				jsPsych.data.addDataToLastTrial({test_version: "repeat_first"});
+				}
+				else if (mycount == 4 || mycount == 5 || mycount == 6 || mycount == 7) {
+				jsPsych.data.addDataToLastTrial({test_version: "lure_first"});
+				}
+		}
+
+	}
+
+
+
+	function sceneSame(index) {
+			this.type = 'single-stim';
+			this.stimulus = shuffled_scene[index]["same"];
+			this.timing_stim = 3000;
+			this.timing_response = 3000;
+			this.choices= [37,39];
+			this.on_finish= function(trial_data) {
+				jsPsych.data.addDataToLastTrial({trial_property: "test"});
+
+			if (trial_data.key_press == 37) {
+				jsPsych.data.addDataToLastTrial({answer_type: "hit"});
+			}
+			else if (trial_data.key_press == 39) {
+				jsPsych.data.addDataToLastTrial({answer_type: "miss"});
+			}
+			else {jsPsych.data.addDataToLastTrial({answer_type:"-"});
+			}
+				if (mycount == 0 || mycount == 1 || mycount == 2 || mycount == 3) {
+					jsPsych.data.addDataToLastTrial({test_version: "repeat_first"});
+				}
+				else if (mycount == 4 || mycount == 5 || mycount == 6 || mycount == 7) {
+					jsPsych.data.addDataToLastTrial({test_version: "lure_first"});
+				}
+			}
+
+
+	}
+
+
+
+
+	function sceneSimilar(index) {
+			this.type = 'single-stim';
+			this.stimulus = shuffled_scene[index]["similar"];
+			this.timing_stim = 3000;
+			this.timing_response = 3000;
+			this.choices = [37, 39];
+			this.on_finish = function (trial_data) {
+			jsPsych.data.addDataToLastTrial({trial_property: "test"});
+					if (trial_data.key_press == 37) {
+						jsPsych.data.addDataToLastTrial({answer_type: "false_alarm"});
+					}
+					else if (trial_data.key_press == 39) {
+						jsPsych.data.addDataToLastTrial({answer_type: "correct_rejection"});
+					}
+					else {
+						jsPsych.data.addDataToLastTrial({answer_type: "-"});
+					}
+				if (mycount == 0 || mycount == 1 || mycount == 2 || mycount == 3) {
+					jsPsych.data.addDataToLastTrial({test_version: "repeat_first"});
+				}
+				else if (mycount == 4 || mycount == 5 || mycount == 6 || mycount == 7) {
+					jsPsych.data.addDataToLastTrial({test_version: "lure_first"});
+				}
+				}
+
+
+
+
+	}
+
+console.log(shuffled_trial_sequence.length);
+
+
+	//declare images variable
+	var images = instruction_images;
+	images = images.concat(single_objects_stimuli);
+	images = images.concat(single_scenes_stimuli);
+	images = images.concat(lure_objects_stimuli);
+
+
+	//declare trial type variables and set them as empty arrays
+	var presentation_1 = [];
+	var presentation_2 = [];
+	var test_1 = [];
+	var test_2 = [];
+
+
+		//start experiment
+		timeline.push(Instruction_trial_2);
+
+	//loop through trial sequence to fill timeline with trials
+	//for(i=0; i<shuffled_trial_sequence.length; i++) {
+		for(i=0; i<4; i++) {
+
+		timeline.push(fixation_intertrial);
+
+		if (i === 22 || i === 44) {
+			timeline.push(pause_trial);
+		}
+		console.log(i);
+		console.log(trial_sequence);
+		console.log(scene_similar_indices+"index number");
+		console.log(scene_same_indices+"index number");
+		console.log(object_similar_indices+"index number");
+		console.log(object_same_indices+"index number");
+		console.log(shuffled_trial_sequence[i]);
+ 
+
+
+	if (
+
+
+			shuffled_trial_sequence[i] === 1) {
+
+
+			presentation_1[i] = new objectPresentation(object_same_indices[0]);
+			presentation_2[i] = new objectPresentation(object_same_indices[1]);
+
+			test_1[i] = new objectSame(object_same_indices[0]);
+			test_2[i] = new objectSame(object_same_indices[1]);
+
+			images.push(shuffled_object[object_same_indices[0]].same);
+			images.push(shuffled_object[object_same_indices[1]].same);
+
+
+
+		//remove the two used indices from the index sequences array
+		object_same_indices.splice(0, 2);
+		}
+
+
+		else if (shuffled_trial_sequence[i] === 2) {
+
+			presentation_1[i] = new objectPresentation(object_similar_indices[0]);
+			presentation_2[i] = new objectPresentation(object_same_indices[0]);
+
+			test_1[i] = new objectSimilar(object_similar_indices[0]);
+			test_2[i] = new objectSame(object_same_indices[0]);
+
+			images.push(shuffled_object[object_similar_indices[0]].same);
+			images.push(shuffled_object[object_similar_indices[0]].similar);
+			images.push(shuffled_object[object_same_indices[0]].same);
+
+
+			//remove the two used indices from the index sequences array
+			object_same_indices.splice(0, 1);
+			object_similar_indices.splice(0, 1);
+		}
+
+
+		else if (shuffled_trial_sequence[i] === 3) {
+
+			presentation_1[i] = new objectPresentation(object_same_indices[0]);
+			presentation_2[i] = new objectPresentation(object_similar_indices[0]);
+
+			test_1[i] = new objectSame(object_same_indices[0]);
+			test_2[i] = new objectSimilar(object_similar_indices[0]);
+
+			images.push(shuffled_object[object_similar_indices[0]].same);
+			images.push(shuffled_object[object_similar_indices[0]].similar);
+			images.push(shuffled_object[object_same_indices[0]].same);
+
+
+			//remove the two used indices from the index sequences array
+			object_same_indices.splice(0, 1);
+			object_similar_indices.splice(0, 1);
+		}
+
+
+		else if (shuffled_trial_sequence[i] === 4) {
+
+			presentation_1[i] = new objectPresentation(object_similar_indices[0]);
+			presentation_2[i] = new objectPresentation(object_similar_indices[1]);
+
+			test_1[i] = new objectSimilar(object_similar_indices[0]);
+			test_2[i] = new objectSimilar(object_similar_indices[1]);
+
+			images.push(shuffled_object[object_similar_indices[0]].same);
+			images.push(shuffled_object[object_similar_indices[0]].similar);
+			images.push(shuffled_object[object_similar_indices[1]].same);
+			images.push(shuffled_object[object_similar_indices[1]].similar);
+
+
+
+
+			//remove the two used indices from the index sequences array
+			object_similar_indices.splice(0, 2);
+		}
+
+		else if (shuffled_trial_sequence[i] === 5) {
+			presentation_1[i] = new scenePresentation(scene_same_indices[0]);
+			presentation_2[i] = new scenePresentation(scene_same_indices[1]);
+
+			test_1[i] = new sceneSame(scene_same_indices[0]);
+			test_2[i] = new sceneSame(scene_same_indices[1]);
+
+			images.push(shuffled_scene[scene_same_indices[0]].same);
+			images.push(shuffled_scene[scene_same_indices[1]].same);
+
+
+			//remove the two used indices from the index sequences array
+			scene_same_indices.splice(0, 2);
+		}
+
+
+		else if (shuffled_trial_sequence[i] === 6) {
+
+			presentation_1[i] = new scenePresentation(scene_similar_indices[0]);
+			presentation_2[i] = new scenePresentation(scene_same_indices[0]);
+
+			test_1[i] = new sceneSimilar(scene_similar_indices[0]);
+			test_2[i] = new sceneSame(scene_same_indices[0]);
+
+			images.push(shuffled_scene[scene_similar_indices[0]].same);
+			images.push(shuffled_scene[scene_similar_indices[0]].similar);
+			images.push(shuffled_scene[scene_same_indices[0]].same);
+
+			//remove the two used indices from the index sequences array
+			scene_same_indices.splice(0, 1);
+			scene_similar_indices.splice(0, 1);
+		}
+
+
+		else if (shuffled_trial_sequence[i] === 7) {
+
+			presentation_1[i] = new scenePresentation(scene_same_indices[0]);
+			presentation_2[i] = new scenePresentation(scene_similar_indices[0]);
+
+			test_1[i] = new sceneSame(scene_same_indices[0]);
+			test_2[i] = new sceneSimilar(scene_similar_indices[0]);
+
+			images.push(shuffled_scene[scene_similar_indices[0]].same);
+			images.push(shuffled_scene[scene_similar_indices[0]].similar);
+			images.push(shuffled_scene[scene_same_indices[0]].same);
+
+			//remove the two used indices from the index sequences array
+			scene_same_indices.splice(0, 1);
+			scene_similar_indices.splice(0, 1);
+		}
+
+		else if (shuffled_trial_sequence[i] === 8) {
+
+			presentation_1[i] = new scenePresentation(scene_similar_indices[0]);
+		presentation_2[i] = new scenePresentation(scene_similar_indices[1]);
+
+		test_1[i] = new sceneSimilar(scene_similar_indices[0]);
+		test_2[i] = new sceneSimilar(scene_similar_indices[1]);
+
+			images.push(shuffled_scene[scene_similar_indices[0]].same);
+			images.push(shuffled_scene[scene_similar_indices[0]].similar);
+			images.push(shuffled_scene[scene_similar_indices[1]].same);
+			images.push(shuffled_scene[scene_similar_indices[1]].similar);
+
+
+
+		//remove the two used indices from the index sequences array
+		scene_similar_indices.splice(0, 2);
+		}
+
+
+		timeline.push(presentation_1[i]);
+		timeline.push(presentation_2[i]);
+		timeline.push(fixation_intertrial);
+		timeline.push(test_1[i]);
+		timeline.push(test_2[i]);
+
+	}
+
+	timeline.push(likert_ratings);
+	
+	
+	
+	d=document.write(new Date());
+	var survey_trial = {
+	  type: 'survey-text',
+		preamble: "hi",
+	  questions: ["Name, Vorname:", "Straße, Hausnummer:","PLZ Ort:","Telefon:","Geldinstitut:","IBAN:","BIC:"],
+	};
+	
+	//get payment info for external participants
+	if (mode == 'debug'){
+	timeline.push(survey_trial);
+	}	
+	//psiturk.preloadImages(images);
+
+	function startExperiment() {
+		jsPsych.init({
+			timeline: timeline,
+			fullscreen: true,
+			on_finish: function () {
+				console.log(alldata);
+				var alldata = jsPsych.data.getData();
+				psiturk.recordTrialData(alldata);
+				psiturk.recordUnstructuredData("age", subject_age);
+				psiturk.saveData({
+					success: function () {
+						console.log(alldata);
+						psiturk.completeHIT();
+					}
+				});
+			}
+		});
+	}
+
+	console.log(timeline);
+	
+
+	console.log(images);
+	console.log(timeline);
+	console.log(single_objects_stimuli);
+	console.log(single_scenes_stimuli);
+	console.log(single_objects);
+	console.log(single_scenes);
+
+console.log(images)
+ 	function preloadimages(arr) {
+		var newimages = [], loadedimages = 0;
+		var postaction = function () {
+		};
+		var arr = (typeof arr != "object") ? [arr] : arr;
+
+		function imageloadpost() {
+			loadedimages++;
+
+			if (loadedimages == arr.length) {
+				postaction();//call postaction
+			}
+		}
+
+		for (var i = 0; i < arr.length; i++) {
+			newimages[i] = new Image();
+			newimages[i].src = arr[i];
+			newimages[i].onload = function () {
+				imageloadpost()
+			};
+			newimages[i].onerror = function () {
+				imageloadpost()
+			};
+
+
+	 }
+	 return { //return blank object with done() method
+	 done:function(f){
+	 postaction=f || postaction;//remember user defined callback functions to be called when$
+	 }
+	 }
+	 }
+ 
+
+console.log("My cond is" + mycond)
+	 //console.log(timeline);
+
+	 var startit = function() {
+	 return x;};
+	 var x= startExperiment();
+	 preloadimages(images).done(startit)
+
+	}); //close GetScript Function
+
+
+
+
+</script>
+</html>
